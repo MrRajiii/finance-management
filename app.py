@@ -11,17 +11,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///finance.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
-# --- AUTH SETUP ---
+
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.init_app(app)
-
 
 @login_manager.user_loader
 def load_user(user_id):
     return UserSettings.query.get(int(user_id))
 
-# --- MODELS ---
 
 
 class UserSettings(UserMixin, db.Model):
@@ -34,7 +32,6 @@ class UserSettings(UserMixin, db.Model):
     accounts = db.relationship('Account', backref='user', lazy=True)
     savings = db.relationship('SavingsAccount', backref='user', uselist=False)
 
-
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user_settings.id'))
@@ -44,12 +41,10 @@ class Transaction(db.Model):
     date = db.Column(db.String(20))
     type = db.Column(db.String(10))
 
-
 class SavingsAccount(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user_settings.id'))
     total_amount = db.Column(db.Float, default=0.0)
-
 
 class Account(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -59,13 +54,9 @@ class Account(db.Model):
     balance = db.Column(db.Float)
     icon = db.Column(db.String(10))
 
-
-# --- DATABASE INIT ---
 with app.app_context():
     db.create_all()
     db.session.commit()
-
-# --- HELPERS ---
 
 
 def get_finance_data():
@@ -73,10 +64,10 @@ def get_finance_data():
         Transaction.user_id == current_user.id, Transaction.type == 'Income').scalar() or 0.0
     total_exp = db.session.query(func.sum(Transaction.amount)).filter(
         Transaction.user_id == current_user.id, Transaction.type == 'Expense').scalar() or 0.0
-
+    
     current_balance = total_inc - total_exp
     total_saved = current_user.savings.total_amount if current_user.savings else 0.0
-
+    
     return {
         "name": current_user.name,
         "email": current_user.email,
@@ -87,8 +78,6 @@ def get_finance_data():
         "savings": "{:,.2f}".format(total_saved),
         "raw_balance": current_balance
     }
-
-# --- AUTH ROUTES ---
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -103,7 +92,6 @@ def login():
             return redirect(url_for('dashboard'))
         flash("Invalid email or password", "error")
     return render_template('login.html')
-
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -120,7 +108,6 @@ def register():
         db.session.add(new_user)
         db.session.commit()
 
-        # Initialize personal savings record for the new user
         db.session.add(SavingsAccount(user_id=new_user.id, total_amount=0.0))
         db.session.commit()
 
@@ -128,14 +115,11 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html')
 
-
 @app.route('/logout')
 @login_required
 def logout():
     logout_user()
     return redirect(url_for('login'))
-
-# --- VIEW ROUTES ---
 
 
 @app.route('/')
@@ -146,11 +130,10 @@ def dashboard():
         Transaction.id.desc()).limit(5).all()
     budget_q = db.session.query(Transaction.category, func.sum(Transaction.amount)).filter(
         Transaction.user_id == current_user.id, Transaction.type == 'Expense').group_by(Transaction.category).all()
-
+    
     return render_template('dashboard.html', data=data, transactions=transactions,
                            budget_categories=[r[0] for r in budget_q],
                            budget_values=[float(r[1]) for r in budget_q], active_page='Dashboard')
-
 
 @app.route('/settings', methods=['GET', 'POST'])
 @login_required
@@ -164,13 +147,11 @@ def settings():
         return redirect(url_for('settings'))
     return render_template('settings.html', data=get_finance_data(), active_page='Settings')
 
-
 @app.route('/wallet')
 @login_required
 def wallet():
     accounts = Account.query.filter_by(user_id=current_user.id).all()
     return render_template('wallet.html', data=get_finance_data(), accounts=accounts, active_page='Wallet')
-
 
 @app.route('/budget')
 @login_required
@@ -182,7 +163,6 @@ def budget():
                            budget_categories=[r[0] for r in budget_q],
                            budget_values=[float(r[1]) for r in budget_q], active_page='Budget')
 
-
 @app.route('/analytics')
 @login_required
 def analytics():
@@ -193,21 +173,16 @@ def analytics():
                            budget_categories=[r[0] for r in budget_q],
                            budget_values=[float(r[1]) for r in budget_q], active_page='Analytics')
 
-
 @app.route('/savings')
 @login_required
 def savings():
     return render_template('savings.html', data=get_finance_data(), active_page='Savings')
 
-
 @app.route('/transactions')
 @login_required
 def transactions():
-    all_t = Transaction.query.filter_by(
-        user_id=current_user.id).order_by(Transaction.id.desc()).all()
+    all_t = Transaction.query.filter_by(user_id=current_user.id).order_by(Transaction.id.desc()).all()
     return render_template('transactions.html', data=get_finance_data(), transactions=all_t, active_page='Transactions')
-
-# --- ACTION ROUTES ---
 
 
 @app.route('/add_account', methods=['POST'])
@@ -224,12 +199,10 @@ def add_account():
     db.session.commit()
     return redirect(url_for('wallet'))
 
-
 @app.route('/adjust_account/<int:id>', methods=['POST'])
 @login_required
 def adjust_account(id):
-    account = Account.query.filter_by(
-        id=id, user_id=current_user.id).first_or_404()
+    account = Account.query.filter_by(id=id, user_id=current_user.id).first_or_404()
     amount = float(request.form.get('amount') or 0)
     action = request.form.get('action')
     if action == 'plus':
@@ -238,7 +211,6 @@ def adjust_account(id):
         account.balance = max(0, account.balance - amount)
     db.session.commit()
     return redirect(url_for('wallet'))
-
 
 @app.route('/add_transaction', methods=['POST'])
 @login_required
@@ -254,7 +226,6 @@ def add_transaction():
     db.session.commit()
     flash("Transaction recorded!", "success")
     return redirect(url_for('dashboard'))
-
 
 @app.route('/update_savings', methods=['POST'])
 @login_required
@@ -281,18 +252,15 @@ def update_savings():
             flash(f"Successfully deposited {symbol}{amount:,.2f}!", "success")
     else:
         if amount > savings_rec.total_amount:
-            flash(
-                f"Oops! You only have {symbol}{savings_rec.total_amount:,.2f} in savings.", "error")
+            flash(f"Oops! You only have {symbol}{savings_rec.total_amount:,.2f} in savings.", "error")
         else:
             db.session.add(Transaction(user_id=current_user.id, name="Withdraw from Savings", amount=amount,
                            category="Salary", date=datetime.now().strftime('%Y-%m-%d'), type="Income"))
             savings_rec.total_amount -= amount
-            flash(
-                f"Successfully transferred back {symbol}{amount:,.2f}!", "success")
+            flash(f"Successfully transferred back {symbol}{amount:,.2f}!", "success")
 
     db.session.commit()
     return redirect(url_for('savings'))
-
 
 @app.route('/clear_history')
 @login_required
@@ -300,7 +268,6 @@ def clear_history():
     Transaction.query.filter_by(user_id=current_user.id).delete()
     db.session.commit()
     return redirect(url_for('transactions'))
-
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -139,11 +139,10 @@ function closeAdjustModal() {
     document.getElementById('adjustBalanceModal').classList.add('hidden');
 }
 
-// Fixed function to handle action and submission properly
 function submitAdjust(event, type) {
-    event.preventDefault(); // Stop the button from refreshing the page instantly
+    event.preventDefault(); 
     document.getElementById('adjustAction').value = type;
-    document.getElementById('adjustBalanceForm').submit(); // Submit the form once the action is set
+    document.getElementById('adjustBalanceForm').submit();
 }
 </script>
 {% endblock %}
