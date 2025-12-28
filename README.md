@@ -1,4 +1,5 @@
 # Finance Management System (In Development)
+
 <p align="left">
   <img src="https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/Flask-000000?style=for-the-badge&logo=flask&logoColor=white" alt="Flask">
@@ -7,6 +8,9 @@
   <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind">
   <img src="https://img.shields.io/badge/Chart.js-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white" alt="Chart.js">
 </p>
+
+> ### ⚠️ Project Status: Under Development
+> This project is currently in the **active development phase**. Some features like Payroll and detailed Reporting are currently being built and may not be fully functional yet.
 
 A Flask-based personal finance tracker with user authentication, transaction logging, and savings management.
 
