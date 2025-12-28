@@ -10,10 +10,10 @@
 
 A Flask-based personal finance tracker with user authentication, transaction logging, and savings management.
 
-## 🚧 Status
+## Status
 Currently in active development. 
 
-## ✅ Completed Features
+## Completed Features
 - User Authentication (Login/Register) using Flask-Login.
 - Dashboard with Income, Expense, and Balance overview.
 - Manual Savings transfers (Deposit/Withdraw).
@@ -25,7 +25,7 @@ Currently in active development.
 - [ ] Add "Export to CSV" for transaction history.
 - [ ] Password reset functionality.
 
-## 🚀 How to Run Locally
+## How to Run Locally
 1. Clone the repo.
 2. Create a virtual environment: `python -m venv venv`.
 3. Install requirements: `pip install -r requirements.txt`.
